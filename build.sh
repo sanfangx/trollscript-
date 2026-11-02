@@ -1,10 +1,5 @@
 #!/bin/bash
-set -e
-
-echo "=== Ensuring Xcode developer directory ==="
-if [ -d "/Applications/Xcode.app/Contents/Developer" ]; then
-    sudo xcode-select -s /Applications/Xcode.app/Contents/Developer || true
-fi
+set -ex
 
 echo "=== Finding iPhoneOS SDK ==="
 SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
@@ -33,3 +28,4 @@ elif command -v codesign &> /dev/null; then
 fi
 
 echo "Build successful! Output: libPhotoModule.dylib"
+file libPhotoModule.dylib

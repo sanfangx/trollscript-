@@ -23,7 +23,23 @@ jobs:
       - name: Compile libPhotoModule.dylib
         run: |
           chmod +x ./build.sh
-          ./build.sh
+          set -o pipefail
+          ./build.sh 2>&1 | tee build.log || {
+            echo "### Build Failed" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            while IFS= read -r line; do
+              if echo "$line" | grep -Ei "error:|fatal|undefined symbol"; then
+                echo "::error title=Compiler Failure::$line"
+              fi
+            done < build.log
+            exit 1
+          }
+          echo "### Build Succeeded" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat build.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
