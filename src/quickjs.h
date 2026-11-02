@@ -45,8 +45,8 @@ typedef struct JSValue {
 #define JS_TAG_STRING        -7
 #define JS_TAG_OBJECT        -1
 
-typedef JSValue JSCFunction(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv);
 typedef const JSValue JSValueConst;
+typedef JSValue JSCFunction(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv);
 
 // QuickJS exported symbols provided by host (TrollScript)
 JSValue JS_NewObject(JSContext *ctx);
