@@ -52,8 +52,6 @@ typedef const JSValue JSValueConst;
 JSValue JS_NewObject(JSContext *ctx);
 JSValue JS_NewArray(JSContext *ctx);
 JSValue JS_NewString(JSContext *ctx, const char *str);
-JSValue JS_NewInt32(JSContext *ctx, int32_t val);
-JSValue JS_NewBool(JSContext *ctx, int val);
 JSValue JS_NewCFunction2(JSContext *ctx, JSCFunction *func, const char *name, int length, int cproto, int magic);
 int JS_SetPropertyStr(JSContext *ctx, JSValueConst this_obj, const char *prop, JSValue val);
 int JS_SetPropertyUint32(JSContext *ctx, JSValueConst this_obj, uint32_t idx, JSValue val);
@@ -74,6 +72,22 @@ static inline JSValue JS_NULL(void) {
     JSValue v;
     v.u.ptr = NULL;
     v.tag = JS_TAG_NULL;
+    return v;
+}
+
+static inline JSValue JS_NewBool(JSContext *ctx, int val) {
+    (void)ctx;
+    JSValue v;
+    v.u.int32 = val ? 1 : 0;
+    v.tag = JS_TAG_BOOL;
+    return v;
+}
+
+static inline JSValue JS_NewInt32(JSContext *ctx, int32_t val) {
+    (void)ctx;
+    JSValue v;
+    v.u.int32 = val;
+    v.tag = JS_TAG_INT;
     return v;
 }
 

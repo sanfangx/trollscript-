@@ -8,8 +8,6 @@
 static JSValue (*p_JS_NewObject)(JSContext *ctx) = NULL;
 static JSValue (*p_JS_NewArray)(JSContext *ctx) = NULL;
 static JSValue (*p_JS_NewString)(JSContext *ctx, const char *str) = NULL;
-static JSValue (*p_JS_NewInt32)(JSContext *ctx, int32_t val) = NULL;
-static JSValue (*p_JS_NewBool)(JSContext *ctx, int val) = NULL;
 static JSValue (*p_JS_NewCFunction2)(JSContext *ctx, JSCFunction *func, const char *name, int length, int cproto, int magic) = NULL;
 static int (*p_JS_SetPropertyStr)(JSContext *ctx, JSValueConst this_obj, const char *prop, JSValue val) = NULL;
 static int (*p_JS_SetPropertyUint32)(JSContext *ctx, JSValueConst this_obj, uint32_t idx, JSValue val) = NULL;
@@ -24,8 +22,6 @@ static void init_qjs_symbols(void) {
         p_JS_NewObject = (JSValue (*)(JSContext *))dlsym(RTLD_DEFAULT, "JS_NewObject");
         p_JS_NewArray = (JSValue (*)(JSContext *))dlsym(RTLD_DEFAULT, "JS_NewArray");
         p_JS_NewString = (JSValue (*)(JSContext *, const char *))dlsym(RTLD_DEFAULT, "JS_NewString");
-        p_JS_NewInt32 = (JSValue (*)(JSContext *, int32_t))dlsym(RTLD_DEFAULT, "JS_NewInt32");
-        p_JS_NewBool = (JSValue (*)(JSContext *, int))dlsym(RTLD_DEFAULT, "JS_NewBool");
         p_JS_NewCFunction2 = (JSValue (*)(JSContext *, JSCFunction *, const char *, int, int, int))dlsym(RTLD_DEFAULT, "JS_NewCFunction2");
         p_JS_SetPropertyStr = (int (*)(JSContext *, JSValueConst, const char *, JSValue))dlsym(RTLD_DEFAULT, "JS_SetPropertyStr");
         p_JS_SetPropertyUint32 = (int (*)(JSContext *, JSValueConst, uint32_t, JSValue))dlsym(RTLD_DEFAULT, "JS_SetPropertyUint32");
@@ -44,7 +40,7 @@ static JSValue js_photo_requestPermission(JSContext *ctx, JSValueConst this_val,
 
 static JSValue js_photo_getRecent(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     init_qjs_symbols();
-    if (!p_JS_NewArray || !p_JS_NewObject) return JS_NULL();
+    if (!p_JS_NewArray || !p_JS_NewObject || !p_JS_NewString || !p_JS_SetPropertyStr || !p_JS_SetPropertyUint32) return JS_NULL();
 
     NSInteger limit = 20;
     NSString *type = @"image";
@@ -55,10 +51,10 @@ static JSValue js_photo_getRecent(JSContext *ctx, JSValueConst this_val, int arg
         NSDictionary *dict = list[i];
         JSValue item = p_JS_NewObject(ctx);
         p_JS_SetPropertyStr(ctx, item, "id", p_JS_NewString(ctx, [dict[@"id"] UTF8String]));
-        p_JS_SetPropertyStr(ctx, item, "width", p_JS_NewInt32(ctx, [dict[@"width"] intValue]));
-        p_JS_SetPropertyStr(ctx, item, "height", p_JS_NewInt32(ctx, [dict[@"height"] intValue]));
+        p_JS_SetPropertyStr(ctx, item, "width", JS_NewInt32(ctx, [dict[@"width"] intValue]));
+        p_JS_SetPropertyStr(ctx, item, "height", JS_NewInt32(ctx, [dict[@"height"] intValue]));
         p_JS_SetPropertyStr(ctx, item, "mediaType", p_JS_NewString(ctx, [dict[@"mediaType"] UTF8String]));
-        p_JS_SetPropertyStr(ctx, item, "creationDate", p_JS_NewInt32(ctx, (int32_t)([dict[@"creationDate"] longLongValue] / 1000)));
+        p_JS_SetPropertyStr(ctx, item, "creationDate", JS_NewInt32(ctx, (int32_t)([dict[@"creationDate"] longLongValue] / 1000)));
         p_JS_SetPropertyUint32(ctx, arr, i, item);
     }
     return arr;
@@ -79,26 +75,26 @@ static JSValue js_photo_getBase64(JSContext *ctx, JSValueConst this_val, int arg
 
 static JSValue js_photo_saveImage(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     init_qjs_symbols();
-    if (argc < 1 || !p_JS_ToCString || !p_JS_NewBool) return JS_NewBool(ctx, 0);
+    if (argc < 1 || !p_JS_ToCString) return JS_NewBool(ctx, 0);
     const char *c_path = p_JS_ToCString(ctx, argv[0]);
-    if (!c_path) return p_JS_NewBool(ctx, 0);
+    if (!c_path) return JS_NewBool(ctx, 0);
     NSString *path = [NSString stringWithUTF8String:c_path];
     p_JS_FreeCString(ctx, c_path);
 
     BOOL ok = [TSPhotoHelper saveImageAtPath:path];
-    return p_JS_NewBool(ctx, ok ? 1 : 0);
+    return JS_NewBool(ctx, ok ? 1 : 0);
 }
 
 static JSValue js_photo_deletePhoto(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv) {
     init_qjs_symbols();
-    if (argc < 1 || !p_JS_ToCString || !p_JS_NewBool) return JS_NewBool(ctx, 0);
+    if (argc < 1 || !p_JS_ToCString) return JS_NewBool(ctx, 0);
     const char *c_id = p_JS_ToCString(ctx, argv[0]);
-    if (!c_id) return p_JS_NewBool(ctx, 0);
+    if (!c_id) return JS_NewBool(ctx, 0);
     NSString *localId = [NSString stringWithUTF8String:c_id];
     p_JS_FreeCString(ctx, c_id);
 
     BOOL ok = [TSPhotoHelper deleteAssetWithId:localId];
-    return p_JS_NewBool(ctx, ok ? 1 : 0);
+    return JS_NewBool(ctx, ok ? 1 : 0);
 }
 
 static void register_photo_to_context(JSContext *ctx) {
