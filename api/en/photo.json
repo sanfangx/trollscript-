@@ -1,0 +1,79 @@
+{
+  "name": "photo",
+  "description": "System Photo Library & Media Management",
+  "icon": "photo.on.rectangle",
+  "color": "pink",
+  "daemonSupport": "full",
+  "methods": [
+    {
+      "name": "requestPermission",
+      "signature": "requestPermission()",
+      "description": "Request or query photo library authorization status",
+      "returns": "string",
+      "returnsDescription": "Authorization status ('authorized' | 'denied' | 'restricted' | 'notDetermined')"
+    },
+    {
+      "name": "getRecent",
+      "signature": "getRecent(options?)",
+      "description": "Fetch recent media assets from photo library",
+      "parameters": [
+        {
+          "name": "options",
+          "type": "{ limit?: number, mediaType?: 'image' | 'video' | 'all' }",
+          "optional": true,
+          "description": "Options: limit (default 20), mediaType"
+        }
+      ],
+      "returns": "[{ id: string, filename: string, width: number, height: number, creationDate: number, mediaType: string }]",
+      "returnsDescription": "Array of photo asset objects"
+    },
+    {
+      "name": "getBase64",
+      "signature": "getBase64(id, options?)",
+      "description": "Get base64 image data for an asset",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Asset local identifier"
+        },
+        {
+          "name": "options",
+          "type": "{ targetWidth?: number, targetHeight?: number, quality?: number }",
+          "optional": true,
+          "description": "Export options"
+        }
+      ],
+      "returns": "string",
+      "returnsDescription": "Base64 encoded image string"
+    },
+    {
+      "name": "saveImage",
+      "signature": "saveImage(filePath)",
+      "description": "Save a local image file to the photo library",
+      "parameters": [
+        {
+          "name": "filePath",
+          "type": "string",
+          "description": "Absolute path to local image file"
+        }
+      ],
+      "returns": "boolean",
+      "returnsDescription": "Whether saved successfully"
+    },
+    {
+      "name": "deletePhoto",
+      "signature": "deletePhoto(id)",
+      "description": "Delete asset from photo library",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Asset identifier"
+        }
+      ],
+      "returns": "boolean",
+      "returnsDescription": "Whether deleted successfully"
+    }
+  ]
+}

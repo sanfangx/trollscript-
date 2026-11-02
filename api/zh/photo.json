@@ -1,0 +1,91 @@
+{
+  "name": "photo",
+  "description": "系统相册操作 & 媒体管理",
+  "icon": "photo.on.rectangle",
+  "color": "pink",
+  "daemonSupport": "full",
+  "methods": [
+    {
+      "name": "requestPermission",
+      "signature": "requestPermission()",
+      "description": "请求或获取相册访问权限状态",
+      "returns": "string",
+      "returnsDescription": "权限状态 ('authorized' | 'denied' | 'restricted' | 'notDetermined')"
+    },
+    {
+      "name": "getRecent",
+      "signature": "getRecent(options?)",
+      "description": "获取系统相册最近的媒体资源列表",
+      "parameters": [
+        {
+          "name": "options",
+          "type": "{ limit?: number, mediaType?: 'image' | 'video' | 'all' }",
+          "optional": true,
+          "description": "获取选项：limit 数量限制（默认 20），mediaType 媒体类型"
+        }
+      ],
+      "returns": "[{ id: string, filename: string, width: number, height: number, creationDate: number, mediaType: string }]",
+      "returnsDescription": "相册资源对象数组"
+    },
+    {
+      "name": "getBase64",
+      "signature": "getBase64(id, options?)",
+      "description": "获取指定相片资源的 Base64 编码数据",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "照片资源唯一标识符 (localIdentifier)"
+        },
+        {
+          "name": "options",
+          "type": "{ targetWidth?: number, targetHeight?: number, quality?: number }",
+          "optional": true,
+          "description": "导出选项：目标宽高与压缩质量(0.0-1.0)"
+        }
+      ],
+      "returns": "string",
+      "returnsDescription": "图片 Base64 编码字符串"
+    },
+    {
+      "name": "saveImage",
+      "signature": "saveImage(filePath)",
+      "description": "将本地图片文件保存至系统相册",
+      "parameters": [
+        {
+          "name": "filePath",
+          "type": "string",
+          "description": "本地图片文件的绝对路径"
+        }
+      ],
+      "returns": "boolean",
+      "returnsDescription": "是否成功保存"
+    },
+    {
+      "name": "deletePhoto",
+      "signature": "deletePhoto(id)",
+      "description": "从系统相册中删除指定资源",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "照片资源标识符"
+        }
+      ],
+      "returns": "boolean",
+      "returnsDescription": "是否成功删除"
+    }
+  ],
+  "examples": [
+    {
+      "name": "读取最近照片",
+      "description": "获取最近 5 张照片并读取第一张的 Base64 数据",
+      "code": "// 检查权限\nconst status = photo.requestPermission();\nif (status === 'authorized') {\n  // 获取最近 5 张照片\n  const photos = photo.getRecent({ limit: 5, mediaType: 'image' });\n  console.log(`获取到 ${photos.length} 张照片:`, photos);\n  \n  if (photos.length > 0) {\n    const b64 = photo.getBase64(photos[0].id);\n    console.log('图片 Base64 长度:', b64.length);\n  }\n}"
+    },
+    {
+      "name": "保存图片到相册",
+      "description": "将生成的本地文件保存入系统相册",
+      "code": "const success = photo.saveImage('/var/mobile/Documents/test.png');\nconsole.log(success ? '保存相册成功' : '保存失败');"
+    }
+  ]
+}
